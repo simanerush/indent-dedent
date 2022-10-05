@@ -28,6 +28,39 @@
     void foo::Lexer::do_foo(void) {
         std::cout << "FOO:" << start_line << ":" << start_column << std::endl;
     }
+
+    void foo::Lexer::do_indent(void) {
+        std::cout << "INDENT:" << start_line << ":" << start_column << std::endl;
+    }
+
+    void foo::Lexer::do_dedent(void) {
+        std::cout << "DEDENT:" << start_line << ":" << start_column << std::endl;
+    }
+
+    void foo::Lexer::handle_indentation() {
+      if (spaces > current_spaces()) {
+        do_indent();
+        indents.push_back(spaces - current_spaces());
+      }
+      while (spaces < current_spaces()) {
+        do_dedent();
+        indents.pop_back();
+        if (spaces > current_spaces()) {
+          std::cerr << "Unexpected indentation level at line" << line << "." << std::endl;
+          exit(-1);
+        }
+      }
+      spaces=0;
+    }
+
+
+    int foo::Lexer::current_spaces() {
+       int sum = 0;
+       for (auto i : indents) {
+          sum += i;
+       }
+       return sum;
+    }
 %}
 
 %option debug
@@ -47,11 +80,19 @@ EOLN    \r\n|\n\r|\n|\r
 %}
 
    
-foo{EOLN} { do_foo(); }
+foo{EOLN} { 
+  handle_indentation();
+  do_foo();
+}
 
-" "       { }
+" "       { 
+  spaces++;
+}
         
-<<EOF>>   { return 0; }
+<<EOF>>   { 
+  handle_indentation();
+  return 0;
+}
 
 . {
     std::string txt { yytext };
