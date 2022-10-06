@@ -37,6 +37,10 @@
         std::cout << "DEDENT:" << start_line << ":" << start_column << std::endl;
     }
 
+    void foo::Lexer::do_eoln(void) {
+        std::cout << "EOLN:" << start_line << ":" << start_column << std::endl;
+    }
+
     void foo::Lexer::handle_indentation() {
       if (spaces > current_spaces()) {
         do_indent();
@@ -80,13 +84,23 @@ EOLN    \r\n|\n\r|\n|\r
 %}
 
    
-foo{EOLN} { 
-  handle_indentation();
+foo { 
+	if (at_sol) {
+		handle_indentation();
+		at_sol = false;
+	}
   do_foo();
 }
 
+{EOLN} {
+	at_sol = true;
+	do_eoln();
+}
+
 " "       { 
-  spaces++;
+	if (at_sol) {
+		spaces++;
+	}
 }
         
 <<EOF>>   { 

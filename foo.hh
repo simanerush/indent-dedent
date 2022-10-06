@@ -13,7 +13,7 @@ class Lexer : public yyFlexLexer {
 public:
   Lexer(std::istream *in)
       : yyFlexLexer{in}, line{1}, column{1}, start_line{1},
-        start_column{1}, indents{}, spaces{0} {}
+        start_column{1}, indents{}, spaces{0}, at_sol(true) {}
   virtual ~Lexer() {}
 
   // get rid of override virtual function warning
@@ -31,6 +31,8 @@ private:
   int line, column;
   int start_line, start_column;
 
+  bool at_sol;
+
   int spaces;
 
   std::vector<int> indents;
@@ -43,6 +45,8 @@ private:
   void do_indent(void);
   //
   void do_dedent(void);
+  //
+  void do_eoln(void);
 
   int current_spaces();
 
